@@ -57,3 +57,8 @@ czasowniki:
        // - wedluch rezultatow rzutu koscmi wygeneruj liste legalnych ruchow
        // - jesli graczem jest komputer, zagraj pierwszy ruch z listy
        // - jesli graczem jest czlowiek, podaj liste legalnych ruchow do wyboru
+
+
+       int main() {
+        
+       }
