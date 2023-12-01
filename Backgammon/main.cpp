@@ -56,20 +56,131 @@ Game status is saved to a text file in a format variable1|variable2|variable3...
                         boardState            - number of each player's checkers per board position
 ]*/
 
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+
+const int BOARD_SIZE          = 24;
+const int MAX_COLOR_SIZE      = 5;
+const int MAX_NAME_SIZE       = 50;
+const char * gameSaveFilename = "C:/Users/mariusz.borowiak/Documents/Dev/C++/Backgammon/gameSave.txt";
+
+struct Position {
+  int whiteCount;
+  int redCount;
+};
+
+struct Player {
+  int wins;
+  int points;
+  char name[MAX_NAME_SIZE];
+  char color[MAX_COLOR_SIZE];
+  int diceRolls[4];
+};
+
+struct GameDetails {
+  int seriesNumber;
+  int matchNumber;
+  int roundNumber;
+};
+
+void readPlayerData(FILE* file, Player& player) {
+  fscanf(file, "%d|%d|%[^|]|%[^|]|", &player.wins, &player.points, &player.name, &player.color);
+  for (int i = 0; i < 4; i++) {
+    fscanf(file,"%d|", &player.diceRolls[i]);
+  }
+}
+
+void readBoardData(FILE* file, Position boardState[BOARD_SIZE]) {
+  for (int i = 0; i < BOARD_SIZE; i++){
+    fscanf(file, "%d|%d|", &boardState[i].whiteCount, &boardState[i].redCount);
+  }
+}
+
+void readGameData(FILE* file, GameDetails& gameDetails) {
+  fscanf(file, "%d|%d|%d|", &gameDetails.seriesNumber, &gameDetails.matchNumber, &gameDetails.roundNumber);
+}
+
+bool fileExists(const char* filename) {
+  return std::filesystem::exists(filename);
+}
+
+bool isFileEmpty(FILE* file) {
+  // Move to end of file
+  fseek(file, 0, SEEK_END);
+  // Get the size of the file
+  long size = ftell(file);
+  // Afterwards reset file pointer
+  rewind(file);
+  return size == 0; 
+}
+
+bool readGameState(GameDetails& gameDetails, Player& player1, Player& player2, Position boardState[BOARD_SIZE]){
+  // If the file doesn't exist OR if file exists but is empty, return false and handle lack of a game save in main
+  if (!fileExists(gameSaveFilename) || (fileExists(gameSaveFilename) && isFileEmpty(fopen(gameSaveFilename,"r")))) return false;
+  FILE* file = fopen(gameSaveFilename,"r");
+  readGameData(file, gameDetails);
+  readPlayerData(file, player1);
+  readPlayerData(file, player2);
+  readBoardData(file, boardState);
+  fclose(file);
+  return true; // successfull game save read
+}
+
+void initializeGameDetails(GameDetails& gameDetails) {
+  gameDetails.seriesNumber  = 1;
+  gameDetails.matchNumber   = 1;
+  gameDetails.roundNumber   = 1;
+}
+
+void initializePlayer(Player& player, const char* name, const char* color) {
+  strcpy(player.name, name);
+  strcpy(player.color, color);
+  player.wins = 0;
+  player.points = 0;
+  memset(player.diceRolls, 0, sizeof(player.diceRolls));
+}
+
+void initializeBoard(Position boardState[BOARD_SIZE]) {
+  boardState[23].whiteCount = 2; // Board position 24
+  boardState[12].whiteCount = 5; // Board position 13
+  boardState[7].whiteCount  = 3; // Board position 8
+  boardState[5].whiteCount  = 5; // Board position 6
+  boardState[0].redCount    = 2; // Board position 1
+  boardState[11].redCount   = 5; // Board position 10
+  boardState[16].redCount   = 3; // Board position 17
+  boardState[18].redCount   = 5; // Board position 19
+}
+
+bool initializeNewGame(GameDetails& gameDetails, Player& player1, Player& player2, Position boardState[BOARD_SIZE]) {
+  initializeGameDetails(gameDetails);
+  initializePlayer(player1, "User", "white");
+  initializePlayer(player2, "ComputerPlayer", "red");
+  initializeBoard(boardState);
+}
 
 
 int main() {
+  GameDetails gameDetails;
+  Player player1 = {}, player2 = {};
+  Position boardState[BOARD_SIZE] = {{0,0}};
 
 // 1. Game start      
 
 //    Determine if it's a new game or a continuation 
+//      If it's a continuation of a game
+//        Read game details from save file and assign params
+  bool isNewGame = readGameState(gameDetails, player1, player2, boardState);
+  if (!isNewGame) {
+//        Continue the game by going to the next player round
+  } else {
+    initializeNewGame(gameDetails, player1, player2, boardState);
+  }
 //      If it's a new game, initiate default game params and actions
 //        Player color choice
 //        Initiative dice roll who starts first
 //        Default board setup
-//      If it's a continuation of a game
-//        Read game details from save file and assign params
-//        Continue the game by going to the next player round
+
 
 // 2. Game logic
 
