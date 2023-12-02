@@ -63,7 +63,7 @@ Game status is saved to a text file in a format variable1|variable2|variable3...
 const int BOARD_SIZE          = 24;
 const int MAX_COLOR_SIZE      = 5;
 const int MAX_NAME_SIZE       = 50;
-const char * gameSaveFilename = "C:/Users/mariusz.borowiak/Documents/Dev/C++/Backgammon/gameSave.txt";
+const char * gameSaveFilename = "C:/Users/mariusz.borowiak/Documents/Dev/C++/CPP-Beginnings/Backgammon/gameSaves/gameSave.txt";
 
 struct Position {
   int whiteCount;
@@ -102,7 +102,8 @@ void readGameData(FILE* file, GameDetails& gameDetails) {
 }
 
 bool fileExists(const char* filename) {
-  return std::filesystem::exists(filename);
+  return false;
+  //return std::filesystem::exists(filename);
 }
 
 bool isFileEmpty(FILE* file) {
@@ -117,8 +118,12 @@ bool isFileEmpty(FILE* file) {
 
 bool readGameState(GameDetails& gameDetails, Player& player1, Player& player2, Position boardState[BOARD_SIZE]){
   // If the file doesn't exist OR if file exists but is empty, return false and handle lack of a game save in main
-  if (!fileExists(gameSaveFilename) || (fileExists(gameSaveFilename) && isFileEmpty(fopen(gameSaveFilename,"r")))) return false;
+  if (!fileExists(gameSaveFilename) || (fileExists(gameSaveFilename) && isFileEmpty(fopen(gameSaveFilename,"r")))) {
+    printf("No file exists");
+    return false;
+  }
   FILE* file = fopen(gameSaveFilename,"r");
+printf("File exists");
   readGameData(file, gameDetails);
   readPlayerData(file, player1);
   readPlayerData(file, player2);
@@ -152,12 +157,43 @@ void initializeBoard(Position boardState[BOARD_SIZE]) {
   boardState[18].redCount   = 5; // Board position 19
 }
 
-bool initializeNewGame(GameDetails& gameDetails, Player& player1, Player& player2, Position boardState[BOARD_SIZE]) {
+void initializeNewGame(GameDetails& gameDetails, Player& player1, Player& player2, Position boardState[BOARD_SIZE]) {
   initializeGameDetails(gameDetails);
   initializePlayer(player1, "User", "white");
   initializePlayer(player2, "ComputerPlayer", "red");
   initializeBoard(boardState);
 }
+
+void writeGameData(FILE* file, const GameDetails& gameDetails) {
+  fprintf(file, "%d|%d|%d|", gameDetails.seriesNumber, gameDetails.matchNumber, gameDetails.roundNumber);
+}
+
+void writePlayerData(FILE* file, const Player& player) {
+  fprintf(file, "%d|%d|%s|%s|", player.wins, player.points, player.name, player.color);
+  for (int i = 0; i < 4; i++) {
+    fprintf(file, "%d|", player.diceRolls[i]);
+  }
+}
+
+void writeBoardData(FILE* file, const Position boardState[BOARD_SIZE]) {
+  for (int i = 0; i < BOARD_SIZE; i++) {
+    fprintf(file, "%d,%d|", boardState[i].whiteCount, boardState[i].redCount);
+  }
+}
+
+void writeGameState(const GameDetails& gameDetails, const Player& player1, const Player& player2, const Position boardState[BOARD_SIZE]) {
+  FILE* file = fopen(gameSaveFilename, "w");
+  if (file == NULL) return; // rewrite to error handle
+
+  writeGameData(file, gameDetails);
+  writePlayerData(file, player1);
+  writePlayerData(file, player2);
+  writeBoardData(file, boardState);
+
+  fprintf(file, "\n");
+  fclose(file);
+}
+
 
 
 int main() {
@@ -192,7 +228,7 @@ int main() {
 //      Based on dice results all legal movements are determined (if any checkers are in the middle of the board, they need to be moved as a priority)
 //      Player makes choice where to move checkers
 //      Board gets updated on screen, and game is saved to file 
-//    
+  writeGameState(gameDetails, player1, player2, boardState);
 
   return 0;
 }
