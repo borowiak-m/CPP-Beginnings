@@ -93,7 +93,7 @@ void readPlayerData(FILE* file, Player& player) {
 
 void readBoardData(FILE* file, Position boardState[BOARD_SIZE]) {
   for (int i = 0; i < BOARD_SIZE; i++){
-    fscanf(file, "%d|%d|", &boardState[i].whiteCount, &boardState[i].redCount);
+    fscanf(file, "%d,%d|", &boardState[i].whiteCount, &boardState[i].redCount);
   }
 }
 
@@ -193,8 +193,6 @@ void writeGameState(const GameDetails& gameDetails, const Player& player1, const
   fprintf(file, "\n");
   fclose(file);
 }
-
-
 
 int main() {
   GameDetails gameDetails;
